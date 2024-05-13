@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let command = args.next();
 
     if let None = command {
-        process_exit("use -h or help to learn more");
+        process_exit("\r\nUse help (-h) to learn more about the binary's options");
     }
 
     let command = command.expect("command is required, use the -h flag as a guide");
