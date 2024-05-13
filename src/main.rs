@@ -72,86 +72,78 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match command {
         Commands::Repo => {
-            if cfg!(target_os = "windows") {
-                panic!("Windows, really? Go download WSL")
-            } else {
-                println!("{}", "Searching for the current branch".dimmed());
-                let branch = Command::new("git")
-                    .args(["branch", "--show-current"])
-                    .output()
-                    .expect("Unable to retrieve the current git branch");
-                let branch = String::from_utf8(branch.stdout).unwrap() as String;
-                let branch = branch.replace("\n", "");
+            println!("{}", "Searching for the current branch".dimmed());
+            let branch = Command::new("git")
+                .args(["branch", "--show-current"])
+                .output()
+                .expect("Unable to retrieve the current git branch");
+            let branch = String::from_utf8(branch.stdout).unwrap() as String;
+            let branch = branch.replace("\n", "");
 
-                println!("\r\n{}", "Fetching any update from github".magenta());
-                Command::new("git")
-                    .args(["fetch"])
-                    .status()
-                    .expect("Unable to fetch with git");
+            println!("\r\n{}", "Fetching any update from github".magenta());
+            Command::new("git")
+                .args(["fetch"])
+                .status()
+                .expect("Unable to fetch with git");
 
-                println!(
-                    "\r\n{} {} {}",
-                    "Pulling any update from the".purple(),
-                    branch.cyan(),
-                    "branch".cyan()
-                );
-                Command::new("git")
-                    .args(["pull", "origin", &branch])
-                    .status()
-                    .expect("Unable to pull with git");
-            };
+            println!(
+                "\r\n{} {} {}",
+                "Pulling any update from the".purple(),
+                branch.cyan(),
+                "branch".cyan()
+            );
+            Command::new("git")
+                .args(["pull", "origin", &branch])
+                .status()
+                .expect("Unable to pull with git");
 
             Ok(())
         }
         Commands::Docker => {
-            if cfg!(target_os = "windows") {
-                panic!("Windows, really? Go download WSL")
-            } else {
-                println!("{}", "Taking the container down".cyan());
-                Command::new("docker")
-                    .args(["compose", "down"])
-                    .status()
-                    .expect("Unable to take the container down");
+            println!("{}", "Taking the container down".cyan());
+            Command::new("docker")
+                .args(["compose", "down"])
+                .status()
+                .expect("Unable to take the container down");
 
-                println!(
-                    "\r\n{} {}",
-                    "Creating a new instance".cyan(),
-                    "of the container using compose".dimmed()
-                );
-                Command::new("docker")
-                    .args(["compose", "up", "-d"])
-                    .status()
-                    .expect("Unable to launch a new detached container");
+            println!(
+                "\r\n{} {}",
+                "Creating a new instance".cyan(),
+                "of the container using compose".dimmed()
+            );
+            Command::new("docker")
+                .args(["compose", "up", "-d"])
+                .status()
+                .expect("Unable to launch a new detached container");
 
-                let migration = args.next();
+            let migration = args.next();
 
-                if let Some(value) = migration {
-                    match value.as_str() {
-                        "--prisma" => {
-                            let timeout = args
-                                .next()
-                                .unwrap_or(String::from("5"))
-                                .parse::<u64>()
-                                .unwrap();
+            if let Some(value) = migration {
+                match value.as_str() {
+                    "--prisma" => {
+                        let timeout = args
+                            .next()
+                            .unwrap_or(String::from("15"))
+                            .parse::<u64>()
+                            .unwrap();
 
-                            println!(
-                                "\r\n{} {}",
-                                "Migrating the schema".bright_purple(),
-                                "and generating the types".dimmed()
-                            );
+                        println!(
+                            "\r\n{} {}",
+                            "Migrating the schema".bright_purple(),
+                            "and generating the types".dimmed()
+                        );
 
-                            // waiting for the database to load
-                            thread::sleep(Duration::from_secs(timeout));
+                        // waiting for the database to load
+                        thread::sleep(Duration::from_secs(timeout));
 
-                            Command::new("bunx")
-                                .args(["prisma", "migrate", "dev"])
-                                .status()
-                                .expect("Unable to run bunx with the prisma binary");
-                        }
-                        _ => (),
+                        Command::new("bunx")
+                            .args(["prisma", "migrate", "dev"])
+                            .status()
+                            .expect("Unable to run bunx with the prisma binary");
                     }
+                    _ => (),
                 }
-            };
+            }
 
             Ok(())
         }
