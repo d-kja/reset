@@ -23,16 +23,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let _current_path = args.next().expect("unable to read the current path");
 
-    let command = args
-        .next()
-        .expect("command is required, use the -h flag as a guide");
+    let command = args.next();
+
+    if let None = command {
+        process_exit("use -h or help to learn more");
+    }
+
+    let command = command.expect("command is required, use the -h flag as a guide");
 
     let command = match &command[..] {
-        "-r" => Commands::Repo,
-        "repo" => Commands::Repo,
-        "-d" => Commands::Docker,
-        "docker" => Commands::Docker,
-        "-h" => {
+        "repo" | "-r" => Commands::Repo,
+        "docker" | "-d" => Commands::Docker,
+        "-h" | "help" => {
             println!(
                 "\n\r{}\n\r {} {}\n\r {} {}",
                 "Available Commands:".bold().bright_cyan(),
