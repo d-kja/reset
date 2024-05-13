@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if cfg!(target_os = "windows") {
                 panic!("Windows, really? Go download WSL")
             } else {
-                println!("{}\r\n", "Searching for the current branch".dimmed());
+                println!("{}", "Searching for the current branch".dimmed());
                 let branch = Command::new("git")
                     .args(["branch", "--show-current"])
                     .output()
@@ -81,14 +81,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let branch = String::from_utf8(branch.stdout).unwrap() as String;
                 let branch = branch.replace("\n", "");
 
-                println!("{}\r\n", "Fetching any update from github".magenta());
+                println!("\r\n{}", "Fetching any update from github".magenta());
                 Command::new("git")
                     .args(["fetch"])
                     .status()
                     .expect("Unable to fetch with git");
 
                 println!(
-                    "{} {} {}\r\n",
+                    "\r\n{} {} {}",
                     "Pulling any update from the".purple(),
                     branch.cyan(),
                     "branch".cyan()
@@ -105,14 +105,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if cfg!(target_os = "windows") {
                 panic!("Windows, really? Go download WSL")
             } else {
-                println!("{}", "Taking the container down\r\n".cyan());
+                println!("{}", "Taking the container down".cyan());
                 Command::new("docker")
                     .args(["compose", "down"])
                     .status()
                     .expect("Unable to take the container down");
 
                 println!(
-                    "\r\n{} {}\r\n",
+                    "\r\n{} {}",
                     "Creating a new instance".cyan(),
                     "of the container using compose".dimmed()
                 );
