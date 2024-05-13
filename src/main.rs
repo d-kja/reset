@@ -1,10 +1,14 @@
 use owo_colors::OwoColorize;
-use std::{env, process::Command};
+use std::{
+    env,
+    process::{self, Command},
+};
 
 #[derive(Debug)]
 enum Commands {
     Repo,
     Docker,
+    Invalid,
 }
 
 // #[derive(Debug)]
@@ -43,9 +47,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             );
             // println!("\n\rAvailable Actions:\n\r - reset (-r)\n\r");
 
-            panic!("\nChoose one of the options above, i.e. \"repo reset\", you can also use the short version \"r r\" ");
+            process_exit("\nChoose one of the options above, i.e. \"repo reset\", you can also use the short version \"r r\" ");
+            Commands::Invalid
         }
-        _ => panic!("\ninvalid command, try -h to see the available options"),
+        _ => {
+            process_exit("\ninvalid command, try -h to see the available options");
+            Commands::Invalid
+        }
     };
 
     // # TODO: action feature
@@ -65,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if cfg!(target_os = "windows") {
                 panic!("Windows, really? Go download WSL")
             } else {
-                println!("{}", "Searching for the current branch".dimmed());
+                println!("{}\r\n", "Searching for the current branch".dimmed());
                 let branch = Command::new("git")
                     .args(["branch", "--show-current"])
                     .output()
@@ -73,14 +81,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let branch = String::from_utf8(branch.stdout).unwrap() as String;
                 let branch = branch.replace("\n", "");
 
-                println!("{}", "Fetching any update from github".magenta());
+                println!("{}\r\n", "Fetching any update from github".magenta());
                 Command::new("git")
                     .args(["fetch"])
                     .status()
                     .expect("Unable to fetch with git");
 
                 println!(
-                    "{} {} {}",
+                    "{} {} {}\r\n",
                     "Pulling any update from the".purple(),
                     branch.cyan(),
                     "branch".cyan()
@@ -135,5 +143,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             Ok(())
         }
+        Commands::Invalid => panic!("Something went wrong"),
     }
+}
+
+fn process_exit(message: &str) {
+    println!("{}", message.red().bold());
+    process::exit(1);
 }
