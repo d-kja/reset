@@ -6,15 +6,15 @@ enum Commands {
     Docker,
 }
 
-#[derive(Debug)]
-enum Action {
-    Reset,
-}
+// #[derive(Debug)]
+// enum Action {
+//     Reset,
+// }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
 
-    let current_path = args.next().expect("unable to read the current path");
+    let _current_path = args.next().expect("unable to read the current path");
 
     let command = args
         .next()
@@ -49,8 +49,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match command {
         Commands::Repo => {
             if cfg!(target_os = "windows") {
-                panic!("Windows, really? Go download WSL...")
+                panic!("Windows, really? Go download WSL")
             } else {
+                println!("Searching for the current branch");
                 let branch = Command::new("git")
                     .args(["branch", "--show-current"])
                     .output()
@@ -58,11 +59,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let branch = String::from_utf8(branch.stdout).unwrap() as String;
                 let branch = branch.replace("\n", "");
 
+                println!("Fetching any update from github");
                 Command::new("git")
                     .args(["fetch"])
                     .status()
                     .expect("Unable to fetch with git");
 
+                println!("Pulling any update from the {} branch", branch);
                 Command::new("git")
                     .args(["pull", "origin", &branch])
                     .status()
@@ -73,13 +76,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::Docker => {
             if cfg!(target_os = "windows") {
-                panic!("Windows, really? Go download WSL...")
+                panic!("Windows, really? Go download WSL")
             } else {
+                println!("Taking the container down");
                 Command::new("docker")
                     .args(["compose", "down"])
                     .status()
                     .expect("Unable to take the container down");
 
+                println!("Creating a new instance of the container using compose");
                 Command::new("docker")
                     .args(["compose", "up", "-d"])
                     .status()
@@ -90,6 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(value) = migration {
                     match value.as_str() {
                         "--prisma" => {
+                            println!("Migrating the prisma schema and generating the types");
                             Command::new("bunx")
                                 .args(["prisma", "migrate", "dev"])
                                 .status()
