@@ -22,12 +22,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let command = match &command[..] {
         "-r" => Commands::Repo,
-        "--repo" => Commands::Repo,
+        "repo" => Commands::Repo,
         "-d" => Commands::Docker,
-        "--docker" => Commands::Docker,
+        "docker" => Commands::Docker,
         "-h" => {
-            println!("\n\rAvailable Commands:\n\r - repo (r)\n\r - docker (d)");
-            println!("\n\rAvailable Actions:\n\r - reset (r)\n\r");
+            println!("\n\rAvailable Commands:\n\r - repo (-r)\n\r - docker (-d)");
+            println!("\n\rExtra:\n\r --prisma: migrate the current schema");
+            // println!("\n\rAvailable Actions:\n\r - reset (-r)\n\r");
 
             panic!("Choose one of the options above, i.e. \"repo reset\", you can also use the short version \"r r\" ");
         }
