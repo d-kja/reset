@@ -1,3 +1,4 @@
+use owo_colors::OwoColorize;
 use std::{env, process::Command};
 
 #[derive(Debug)]
@@ -26,13 +27,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "-d" => Commands::Docker,
         "docker" => Commands::Docker,
         "-h" => {
-            println!("\n\rAvailable Commands:\n\r - repo (-r)\n\r - docker (-d)");
-            println!("\n\rExtra:\n\r --prisma: migrate the current schema");
+            println!(
+                "\n\r{}\n\r {} {}\n\r {} {}",
+                "Available Commands:".bold().bright_cyan(),
+                "- repo".italic(),
+                "(-r)".dimmed(),
+                "- docker".italic(),
+                "(-d)".dimmed()
+            );
+            println!(
+                "\n\r{}\n\r {}: {}",
+                "Extra:".bright_magenta().italic(),
+                "--prisma".italic(),
+                "migrate the current schema".dimmed().italic()
+            );
             // println!("\n\rAvailable Actions:\n\r - reset (-r)\n\r");
 
-            panic!("Choose one of the options above, i.e. \"repo reset\", you can also use the short version \"r r\" ");
+            panic!("\nChoose one of the options above, i.e. \"repo reset\", you can also use the short version \"r r\" ");
         }
-        _ => panic!("invalid command, try -h to see the available options"),
+        _ => panic!("\ninvalid command, try -h to see the available options"),
     };
 
     // # TODO: action feature
@@ -52,7 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if cfg!(target_os = "windows") {
                 panic!("Windows, really? Go download WSL")
             } else {
-                println!("Searching for the current branch");
+                println!("{}", "Searching for the current branch".dimmed());
                 let branch = Command::new("git")
                     .args(["branch", "--show-current"])
                     .output()
@@ -60,13 +73,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let branch = String::from_utf8(branch.stdout).unwrap() as String;
                 let branch = branch.replace("\n", "");
 
-                println!("Fetching any update from github");
+                println!("{}", "Fetching any update from github".magenta());
                 Command::new("git")
                     .args(["fetch"])
                     .status()
                     .expect("Unable to fetch with git");
 
-                println!("Pulling any update from the {} branch", branch);
+                println!(
+                    "{} {} {}",
+                    "Pulling any update from the".purple(),
+                    branch.cyan(),
+                    "branch".cyan()
+                );
                 Command::new("git")
                     .args(["pull", "origin", &branch])
                     .status()
@@ -79,13 +97,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if cfg!(target_os = "windows") {
                 panic!("Windows, really? Go download WSL")
             } else {
-                println!("Taking the container down");
+                println!("{}", "Taking the container down\r\n".cyan());
                 Command::new("docker")
                     .args(["compose", "down"])
                     .status()
                     .expect("Unable to take the container down");
 
-                println!("Creating a new instance of the container using compose");
+                println!(
+                    "\r\n{} {}\r\n",
+                    "Creating a new instance".cyan(),
+                    "of the container using compose".dimmed()
+                );
                 Command::new("docker")
                     .args(["compose", "up", "-d"])
                     .status()
@@ -96,7 +118,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(value) = migration {
                     match value.as_str() {
                         "--prisma" => {
-                            println!("Migrating the prisma schema and generating the types");
+                            println!(
+                                "\r\n{} {}",
+                                "Migrating the schema".bright_purple(),
+                                "and generating the types".dimmed()
+                            );
                             Command::new("bunx")
                                 .args(["prisma", "migrate", "dev"])
                                 .status()
