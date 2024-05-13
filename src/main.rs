@@ -2,6 +2,8 @@ use owo_colors::OwoColorize;
 use std::{
     env,
     process::{self, Command},
+    thread,
+    time::Duration,
 };
 
 #[derive(Debug)]
@@ -42,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!(
                 "\n\r{}\n\r {}: {}",
                 "Extra:".bright_magenta().italic(),
-                "--prisma".italic(),
+                "--prisma [timeout u64]".italic(),
                 "migrate the current schema".dimmed().italic()
             );
             // println!("\n\rAvailable Actions:\n\r - reset (-r)\n\r");
@@ -126,11 +128,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(value) = migration {
                     match value.as_str() {
                         "--prisma" => {
+                            let timeout = args
+                                .next()
+                                .unwrap_or(String::from("5"))
+                                .parse::<u64>()
+                                .unwrap();
+
                             println!(
                                 "\r\n{} {}",
                                 "Migrating the schema".bright_purple(),
                                 "and generating the types".dimmed()
                             );
+
+                            // waiting for the database to load
+                            thread::sleep(Duration::from_secs(timeout));
+
                             Command::new("bunx")
                                 .args(["prisma", "migrate", "dev"])
                                 .status()
