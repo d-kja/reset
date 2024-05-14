@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Commands::Invalid
         }
         _ => {
-            process_exit("Invalid command, try using help (h) to see the available options");
+            process_exit("\r\nInvalid command, try using help (h) to see the available options");
             Commands::Invalid
         }
     };
@@ -100,8 +100,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .status()
                 .expect("Unable to pull with git");
 
-            for flag in args {
-                handle_flags(flag, &mut args_for_flags);
+            for (idx, flag) in args.enumerate() {
+                let next_flag_idx = idx + 3;
+                handle_flags(flag, args_for_flags.nth(next_flag_idx));
             }
 
             Ok(())
@@ -123,8 +124,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .status()
                 .expect("Unable to launch a new detached container");
 
-            for flag in args {
-                handle_flags(flag, &mut args_for_flags);
+            for (idx, flag) in args.enumerate() {
+                let next_flag_idx = idx + 3;
+                handle_flags(flag, args_for_flags.nth(next_flag_idx));
             }
 
             Ok(())
@@ -133,11 +135,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn handle_flags(flag: String, args: &mut Args) {
+fn handle_flags(flag: String, param: Option<String>) {
     match flag.as_str() {
         "--prisma" => {
-            let timeout = args
-                .next()
+            let timeout = param
                 // a safe duration considering how long it takes to spin up a mysql docker
                 .unwrap_or(String::from("15"))
                 .parse::<u64>()
@@ -198,7 +199,7 @@ fn welcome_message() {
     let footer = format!("      .::{:.^76}::.", "");
 
     println!(
-        "{}\r\n\r\n{}\r\n\r\n{}",
+        "\r\n\r\n{}\r\n\r\n{}\r\n\r\n{}\r\n\r\n",
         header.bold().bright_purple(),
         content,
         footer.bold().bright_purple()
