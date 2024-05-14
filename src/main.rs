@@ -1,6 +1,6 @@
 use owo_colors::OwoColorize;
 use std::{
-    env,
+    env::{self, Args},
     process::{self, Command},
     thread,
     time::Duration,
@@ -20,42 +20,43 @@ enum Commands {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args();
+    let mut args_for_flags = env::args();
 
     let _current_path = args.next().expect("unable to read the current path");
 
     let command = args.next();
 
     if let None = command {
-        process_exit("\r\nUse help (-h) to learn more about the binary's options");
+        welcome_message();
     }
 
     let command = command.expect("command is required, use the -h flag as a guide");
 
     let command = match &command[..] {
-        "repo" | "-r" => Commands::Repo,
-        "docker" | "-d" => Commands::Docker,
-        "-h" | "help" => {
+        "repo" | "r" => Commands::Repo,
+        "docker" | "d" => Commands::Docker,
+        "h" | "help" => {
             println!(
-                "\n\r{}\n\r {} {}\n\r {} {}",
+                "\r\n{}\r\n {} {}\r\n {} {}",
                 "Available Commands:".bold().bright_cyan(),
                 "- repo".italic(),
-                "(-r)".dimmed(),
+                "(r)".dimmed(),
                 "- docker".italic(),
-                "(-d)".dimmed()
+                "(d)".dimmed()
             );
             println!(
-                "\n\r{}\n\r {}: {}",
+                "\r\n{}\r\n {}: {}",
                 "Extra:".bright_magenta().italic(),
                 "--prisma [timeout u64]".italic(),
                 "migrate the current schema".dimmed().italic()
             );
             // println!("\n\rAvailable Actions:\n\r - reset (-r)\n\r");
 
-            process_exit("\nChoose one of the options above, i.e. \"repo reset\", you can also use the short version \"r r\" ");
+            process_exit(format!("\r\nChoose one of the options above, i.e. \"repo reset\", you can also use the short version\r\n").as_str());
             Commands::Invalid
         }
         _ => {
-            process_exit("\ninvalid command, try -h to see the available options");
+            process_exit("Invalid command, try using help (h) to see the available options");
             Commands::Invalid
         }
     };
@@ -99,6 +100,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .status()
                 .expect("Unable to pull with git");
 
+            for flag in args {
+                handle_flags(flag, &mut args_for_flags);
+            }
+
             Ok(())
         }
         Commands::Docker => {
@@ -118,33 +123,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .status()
                 .expect("Unable to launch a new detached container");
 
-            let migration = args.next();
-
-            if let Some(value) = migration {
-                match value.as_str() {
-                    "--prisma" => {
-                        let timeout = args
-                            .next()
-                            .unwrap_or(String::from("15"))
-                            .parse::<u64>()
-                            .unwrap();
-
-                        println!(
-                            "\r\n{} {}",
-                            "Migrating the schema".bright_purple(),
-                            "and generating the types".dimmed()
-                        );
-
-                        // waiting for the database to load
-                        thread::sleep(Duration::from_secs(timeout));
-
-                        Command::new("bunx")
-                            .args(["prisma", "migrate", "dev"])
-                            .status()
-                            .expect("Unable to run bunx with the prisma binary");
-                    }
-                    _ => (),
-                }
+            for flag in args {
+                handle_flags(flag, &mut args_for_flags);
             }
 
             Ok(())
@@ -153,7 +133,75 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
+fn handle_flags(flag: String, args: &mut Args) {
+    match flag.as_str() {
+        "--prisma" => {
+            let timeout = args
+                .next()
+                // a safe duration considering how long it takes to spin up a mysql docker
+                .unwrap_or(String::from("15"))
+                .parse::<u64>()
+                .unwrap();
+
+            println!(
+                "\r\n{} {}",
+                "Migrating the schema".bright_purple(),
+                "and generating the types".dimmed()
+            );
+
+            // waiting for the database to load
+            thread::sleep(Duration::from_secs(timeout));
+
+            Command::new("bunx")
+                .args(["prisma", "migrate", "dev"])
+                .status()
+                .expect("Unable to run bunx with the prisma binary");
+        }
+        _ => (),
+    }
+}
+
 fn process_exit(message: &str) {
     println!("{}", message.red().bold());
+    process::exit(1);
+}
+
+fn welcome_message() {
+    let header = r#"
+            . .      . .      . .      . .     . .    .       . .      .     .        
+         .+'|=|`+..+'|=|`+..+'|=|`+..+'|=|`+.+'|=|`+.=|`+. .+'|=|`+..+'|     |`+.     
+         |  | |  ||  | `+.||  | `+.||  | `+.|.+' |  | `+.| |  | `+.||  |     |  |     
+         |  |'. '.|  |=|`. |  | .   |  |=|`.     |  |      |  |     |  |     |  |     
+         |  | |  ||  | `.| `+.|=|`+.|  | `.|     |  |      |  |     |  |     |  |     
+         |  | |  ||  |    ..    |  ||  |    .    |  |      |  |    .|  |    .|  |     
+         |  | |  ||  | .+'||`+. |  ||  | .+'|    |  |      |  | .+'||  | .+'||  |     
+         `+.| |.+'`+.|=|.+'`+.|=|.+'`+.|=|.+'    |.+'      `+.|=|.+'`+.|=|.+'|.+'     
+                                                                                      
+    +----------------------------------------------------------------------------------+
+    "#;
+
+    let content = format!(
+        " {} \r\n {} \r\n\r\n\r\n {} \r\n\r\n {} ",
+        "                 A simple CLI created to reduce the amount of repetition"
+            .italic()
+            .dimmed(),
+        "                             on daily tasks of a developer"
+            .italic()
+            .dimmed(),
+        "             To learn more about this binary, you can run either of the following:"
+            .purple()
+            .bold(),
+        "                       [binary-name] help      |      [binary-name] h"
+            .white()
+            .italic()
+    );
+    let footer = format!("      .::{:.^76}::.", "");
+
+    println!(
+        "{}\r\n\r\n{}\r\n\r\n{}",
+        header.bold().bright_purple(),
+        content,
+        footer.bold().bright_purple()
+    );
     process::exit(1);
 }
