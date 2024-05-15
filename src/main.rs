@@ -1,10 +1,14 @@
+mod utils;
+
 use owo_colors::OwoColorize;
 use std::{
-    env::{self, Args},
-    process::{self, Command},
+    env::{self},
+    process::Command,
     thread,
     time::Duration,
 };
+
+use utils::{error::process_exit, greeting::welcome_message};
 
 #[derive(Debug)]
 enum Commands {
@@ -160,49 +164,4 @@ fn handle_flags(flag: String, param: Option<String>) {
         }
         _ => (),
     }
-}
-
-fn process_exit(message: &str) {
-    println!("{}", message.red().bold());
-    process::exit(1);
-}
-
-fn welcome_message() {
-    let header = r#"
-            . .      . .      . .      . .     . .    .       . .      .     .        
-         .+'|=|`+..+'|=|`+..+'|=|`+..+'|=|`+.+'|=|`+.=|`+. .+'|=|`+..+'|     |`+.     
-         |  | |  ||  | `+.||  | `+.||  | `+.|.+' |  | `+.| |  | `+.||  |     |  |     
-         |  |'. '.|  |=|`. |  | .   |  |=|`.     |  |      |  |     |  |     |  |     
-         |  | |  ||  | `.| `+.|=|`+.|  | `.|     |  |      |  |     |  |     |  |     
-         |  | |  ||  |    ..    |  ||  |    .    |  |      |  |    .|  |    .|  |     
-         |  | |  ||  | .+'||`+. |  ||  | .+'|    |  |      |  | .+'||  | .+'||  |     
-         `+.| |.+'`+.|=|.+'`+.|=|.+'`+.|=|.+'    |.+'      `+.|=|.+'`+.|=|.+'|.+'     
-                                                                                      
-    +----------------------------------------------------------------------------------+
-    "#;
-
-    let content = format!(
-        " {} \r\n {} \r\n\r\n\r\n {} \r\n\r\n {} ",
-        "                 A simple CLI created to reduce the amount of repetition"
-            .italic()
-            .dimmed(),
-        "                             on daily tasks of a developer"
-            .italic()
-            .dimmed(),
-        "             To learn more about this binary, you can run either of the following:"
-            .purple()
-            .bold(),
-        "                       [binary-name] help      |      [binary-name] h"
-            .white()
-            .italic()
-    );
-    let footer = format!("      .::{:.^76}::.", "");
-
-    println!(
-        "\r\n\r\n{}\r\n\r\n{}\r\n\r\n{}\r\n\r\n",
-        header.bold().bright_purple(),
-        content,
-        footer.bold().bright_purple()
-    );
-    process::exit(1);
 }
