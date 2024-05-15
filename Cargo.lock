@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "latered"
+name = "laterem"
 version = "0.1.0"
 dependencies = [
  "owo-colors",
