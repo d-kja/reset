@@ -1,7 +1,6 @@
 use owo_colors::OwoColorize;
-use std::process;
 
-pub fn process_exit(message: &str) {
+pub fn process_exit(error: Box<dyn std::error::Error>) {
+    let message = error.to_string();
     println!("{}", message.red().bold());
-    process::exit(1);
 }
